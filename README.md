@@ -1,5 +1,5 @@
 # Proxy
-For have Innoverse on consoles without hack. Proxy Internet (possible).
+- For have Innoverse on your console without jailbreak (hack). Proxy Internet (possible).
 
 # What is it ?
 - It's Proxy IP for use and replace the Miiverse Patches to Innoverse Patches (Can be possible).
