@@ -1,36 +1,34 @@
+const config = require('./config.json');
+const { config: { port } = config;
 const http = require('http');
 const httpProxy = require('http-proxy');
-
+const express = require('express');
 const proxy = httpProxy.createProxyServer({});
+const server = express();
 
-const server = http.createServer((req, res) => {
-    if (req.headers.host === 'account.nintendo.net') {
-        req.url = req.url.replace('account.nintendo.net', 'account.innoverse.club');
-        req.headers.host = 'account.innoverse.club'; 
-    }
+server.use((req, res, next) => {
+    const target = req.url.replace('https://discovery.olv.nintendo.net', 'https://discovery.olv.innoverse.club');
+    req.url = target;
 
-    proxy.web(req, res, { target: `http://${req.headers.host}` }, (error) => {
-        console.error('Error of the redirection:', error);
-        res.writeHead(502, { 'Content-Type': 'text/plain' });
-        res.end('Error of the redirection of the proxy.');
+    console.log(`Proxying request to: ${req.url}`);
+
+    next();
+});
+
+server.use((req, res) => {
+    proxy.web(req, res, { target: req.url }, (err) => {
+        if (err) {
+            console.error('Proxy error:', err);
+            res.status(500).send('Proxy error');
+        }
     });
 });
 
-const getLocalIPAddress = () => {
-    const interfaces = require('os').networkInterfaces();
-    for (const interfaceName in interfaces) {
-        for (const iface of interfaces[interfaceName]) {
-            if (iface.family === 'IPv4' && !iface.internal) {
-                return iface.address;
-            }
-        }
-    }
-    return '127.0.0.1';
-};
+async function main() {
+    const https = http.createServer(app);
+    https.listen(port, () => {
+        console.log(`Proxy server is running on port ${port}`);
+    });
+}
 
-const PORT = 8888;
-
-server.listen(PORT, () => {
-    const localIP = getLocalIPAddress();
-    console.log(`Proxy started on ${localIP}:${PORT}`);
-});
+main().catch(console.error);
